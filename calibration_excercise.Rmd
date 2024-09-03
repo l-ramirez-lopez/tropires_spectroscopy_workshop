@@ -1,0 +1,365 @@
+---
+title: |
+  | Application development excercise for a handheld spectrometer
+subtitle: |
+  | Cost-efficient spectroscopy for soil analyses
+  | TROPIRES Summer School -  Workshop II
+author: 
+  - name: "Leonardo Ramirez-Lopez"
+  - name: "Moritz Mainka"
+  - name: "Laura Summerauer"
+date: "`r Sys.Date()`"    
+title-block-banner: true
+date-format: long
+output: 
+  bookdown::html_document2:
+    highlight: pygments
+    theme: cerulean
+    mathjax: default
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+    fig_caption: true
+    number_sections: true
+link-citations: true
+---
+
+<style type="text/css">
+
+h1.title {
+  font-size: 38px;
+  text-align: center;
+  font-weight: bold;
+}
+h2.subtitle {
+  font-size: 28px;
+  text-align: center;
+}
+h3.subtitle {
+  font-size: 28px;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  text-align: center;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+This analysis involves working with soil spectroscopy data. We will perform preprocessing steps including smoothing, applying splines, and standard normal variate transformations.
+
+# Loading the data
+
+First, we load the required libraries and set the working directory. and then we load the soil spectroscopy data from an RDS file.
+
+```{r, message = FALSE, eval=FALSE}
+wd <- "C:/Users/mmainka/GitHub/TROPIRES_SummerSchool_Uganda"
+setwd(wd)
+```
+
+```{r, message = FALSE}
+library(proximater)
+my_soil <- readRDS("data/NIRabs_allUganda_noSaaka.rds")
+```
+
+# Exploring the data
+
+We extract the wavenumbers from the raw and preprocessed data.
+
+```{r}
+wavs <- as.numeric(colnames(my_soil$abs))
+wavs_pre <- as.numeric(colnames(my_soil$abs_pre))
+```
+
+## Plotting all raw spectra
+
+We plot the raw spectra to visually inspect the data.
+
+```{r}
+matplot(
+  x = wavs, 
+  y = t(my_soil$abs),
+  xlab = expression(paste("Wavenumber, ", cm^{-1})),
+  ylab = 'Absorbance',
+  type = 'l',
+  col = rgb(1, 0, 0, 0.4),
+  lty = 1, 
+  main = "All raw spectra",
+  xlim = c(7500, 3900)
+)
+```
+
+# Preprocessing the spectral data
+
+## Smoothing 
+
+We apply a moving average to smooth the spectra.
+
+```{r}
+my_soil$abs_pre <- my_soil$abs |>
+  prospectr::movav(w = 19)
+```
+
+We plot the smoothed spectra to compare with the raw data.
+
+```{r}
+matplot(
+  x = as.numeric(colnames(my_soil$abs_pre)), 
+  y = t(my_soil$abs_pre),
+  xlab = expression(paste("Wavenumber, ", cm^{-1})),
+  ylab = 'Absorbance',
+  type = 'l',
+  col = rgb(1, 0, 0, 0.4),
+  lty = 1, 
+  main = "All smoothed spectra",
+  xlim = c(7500, 3900)
+)
+```
+
+## Wavenumbers information
+
+We inspect the original wavenumbers in the dataset.
+
+```{r}
+original_wav <- as.numeric(colnames(my_soil$abs))
+min(original_wav)
+max(original_wav)
+```
+
+## Applying a Preprocessing Recipe
+
+We create a preprocessing recipe using splines to reduce the resolution of the spectral data.
+
+```{r}
+my_recipe_1 <- nwp_process_recipe(
+  nwp_spline(min_w = 3922, max_w = 7408, resolution = 10)
+)
+```
+
+We apply the recipe to the data and compare the dimensions of the processed and original spectra.
+
+```{r}
+processed_1 <- nwp_process(my_soil$abs, my_recipe_1)
+
+# Check dimensions
+dim(processed_1)
+dim(my_soil$abs)
+```
+
+## Advanced preprocessing recipe
+
+We create another pre-processing recipe that includes both splines and standard normal variate (SNV) transformation.
+
+```{r}
+my_recipe_2 <- nwp_process_recipe(
+  nwp_spline(min_w = 3922, max_w = 7408, resolution = 10), 
+  nwp_snvt()
+)
+```
+
+We apply this advanced recipe to the data.
+
+```{r}
+processed_2 <- nwp_process(my_soil$abs , my_recipe_2)
+```
+
+Finally, we plot the spectra after applying the advanced pre-processing.
+
+```{r}
+matplot(
+  x = as.numeric(colnames(processed_2)), 
+  y = t(processed_2),
+  xlab = expression(paste("Wavenumber, ", cm^{-1})),
+  ylab = 'Absorbance',
+  type = 'l',
+  col = rgb(1, 0, 0, 0.4),
+  lty = 1, 
+  main = "Processed spectra recipe 2",
+  xlim = c(7500, 3900)
+)
+```
+
+We see in the previous figure that we still have considerable amount of noise 
+in our spectra. Therefore, we can include in our pre-processing recipe a
+smoothing step:
+
+```{r}
+my_recipe_3 <- nwp_process_recipe(
+  nwp_spline(min_w = 3922, max_w = 7408, resolution = 10), 
+  spc_smooth(w = 7, a = 1),
+  nwp_snvt()
+)
+```
+
+We apply the pre-processing recipe
+
+```{r}
+processed_3 <- nwp_process(my_soil$abs , my_recipe_3)
+```
+
+and plot again:
+
+```{r}
+matplot(
+  x = as.numeric(colnames(processed_3)), 
+  y = t(processed_3),
+  xlab = expression(paste("Wavenumber, ", cm^{-1})),
+  ylab = 'Absorbance',
+  type = 'l',
+  col = rgb(1, 0, 0, 0.4),
+  lty = 1, 
+  main = "Processed spectra 3",
+  xlim = c(7500, 3900)
+)
+```
+
+Lets, now add another pre-processing to do apply first order derivative. Before
+we do that, lets get rid of the first part of the spectrum as it is extremely noisy:
+
+```{r}
+# lets recall that the wavenumbers are stored in the object wav
+# we can use that object to select/timm the spectra
+my_soil$abs_trimmed <- my_soil$abs[, wavs < 6000]
+```
+
+```{r}
+my_recipe_final <- nwp_process_recipe(
+  ns_resample(), 
+  nwp_snvt(), 
+  spc_derivative(m = 1, w = 15, a = 1)
+)
+```
+
+We apply the pre-processing recipe
+
+```{r}
+processed_final <- nwp_process(my_soil$abs_trimmed , my_recipe_final)
+```
+
+
+```{r}
+matplot(
+  x = as.numeric(colnames(processed_final)), 
+  y = t(processed_final),
+  xlab = expression(paste("Wavenumber, ", cm^{-1})),
+  ylab = 'Absorbance',
+  type = 'l',
+  col = rgb(1, 0, 0, 0.4),
+  lty = 1, 
+  main = "Processed spectra final",
+  xlim = c(7500, 3900)
+)
+```
+
+# Modelling
+
+```{r, warning = FALSE, message = FALSE, results = "hide"}
+control <- calibration_control(
+  validation_type = "kfold", number = 3, folds = "sequential"
+)
+c_model <- nwp_model(
+  TC_gkg ~ abs_trimmed, data = my_soil, preprocess = my_recipe_final,
+  method = pls_method(ncomp = 15), control = control
+)
+```
+
+Try now this and see what happens:
+
+```{r, eval= FALSE}
+plot(c_model, selection = "all")
+```
+
+# Predictions
+In this section, we read in the scans that were measured with the handheld NIR spectrometer. We filter the scans for the device ID that we used. Then reflectance values are converted into absorbance values using the following formula: 
+$$log10(\frac{1}{(scans * 0.01)})$$
+
+
+```{r read-prediction}
+library(dplyr)
+
+# USER: loads all scans from GROUP 2 (soil core samples)  ####
+my_scans <- read_spc("data/core_samples/core_scans.csv", sep = ",")
+
+# filter for your scans by using the device ID
+my_scans <- my_scans %>% data.frame() %>% filter(Device.Id == "NeoScanner_23030131")
+
+#convert to absorbance
+my_scans$spc_abs <- log10(1 / (my_scans$spc * 0.01))
+
+# VISUALIZE
+wavs <- colnames(my_scans$spc)
+wavs <- as.numeric(wavs)
+xax <- "Wavelength, nm"
+yax <- "Absorbance"
+
+matplot(x = wavs, y = t(my_scans$spc_abs),
+        xlab = xax,
+        ylab = yax,
+        type = "l",
+        lty = 1,
+        main = "Soil profile spectra")
+
+
+```
+
+After a visual inspection of our spectra, the next line of code will predict the total carbon content of the soil samples using the calibration model that we built earlier.
+
+```{r predict}
+
+pred <- predict(c_model, newdata = my_scans$spc_abs)
+pred$predictions
+```
+
+Since we scanned the depth gradient using three replicates per depth. Let's now store the three replications in separate files for later visualization (e.g. in Excel).
+
+```{r separate-replicates}
+
+# create a new dataframe with predictions
+
+all_my_preds <- data.frame(
+  my_scans[, c("Sample.Name", "Device.Id", "Created.At..UTC.", "Created.By")],
+  # create depth variable
+  bottom_depth = as.numeric(gsub(".*?(\\d{4}).*", "\\1", my_scans$Sample.Name)) %% 100 *-1,
+  predictions = as.numeric(pred$predictions)
+)
+
+# separate each replication
+rep_1 <- all_my_preds[grep('^01', all_my_preds$Sample.Name), ]
+rep_2 <- all_my_preds[grep('^02', all_my_preds$Sample.Name), ]
+rep_3 <- all_my_preds[grep('^03', all_my_preds$Sample.Name), ]
+
+# store file in separate csv files
+write.table(rep_1, file = 'data/00_output/my_predictions_rep1.csv', sep = ",", row.names = FALSE)
+write.table(rep_2, file = 'data/00_output/my_predictions_rep2.csv', sep = ",", row.names = FALSE)
+write.table(rep_3, file = 'data/00_output/my_predictions_rep3.csv', sep = ",", row.names = FALSE)
+```
+
+
+# Visualize predictions
+However, we can also use R to visualize our replicate scans. In this example, we create a line plot with each line representing one replicate scan.
+```{r plot}
+
+plot(x = rep_1$predictions, y = rep_1$bottom,
+     xlab = "Total Carbon Content (g/kg)",
+     ylab = "Depth (cm)",
+     xlim = c(0, 60),
+     pch = 19,
+     col = rgb(1, 0, 0, 0.4),
+     type = "b")
+lines(x = rep_2$predictions, y = rep_2$bottom, col = "blue", type = "b")
+lines(x = rep_3$predictions, y = rep_3$bottom, col = "green", type = "b")
+legend("topright", legend = c("Replicate 1", "Replicate 2", "Replicate 3"), col = c("red", "blue", "green"), pch = 19, lty = 1)
+
+```
+

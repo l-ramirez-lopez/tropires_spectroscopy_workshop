@@ -1,0 +1,9 @@
+"Sample.Name","Device.Id","Created.At..UTC.","Created.By","bottom_depth","predictions"
+"03-7076_1","NeoScanner_23030131","2024-08-23T07:23:57.000Z","moritz.mainka@usys.ethz.ch",-76,45.5250980212822
+"03-6070_1","NeoScanner_23030131","2024-08-23T07:20:12.000Z","moritz.mainka@usys.ethz.ch",-70,41.8068607105268
+"03-5060_1","NeoScanner_23030131","2024-08-23T07:18:16.000Z","moritz.mainka@usys.ethz.ch",-60,43.8614798297623
+"03-4050_1","NeoScanner_23030131","2024-08-23T07:16:35.000Z","moritz.mainka@usys.ethz.ch",-50,35.5078711648421
+"03-3040_1","NeoScanner_23030131","2024-08-23T07:14:50.000Z","moritz.mainka@usys.ethz.ch",-40,25.4302369252574
+"03-2030_1","NeoScanner_23030131","2024-08-23T07:11:51.000Z","moritz.mainka@usys.ethz.ch",-30,31.8134412058749
+"03-1020_1","NeoScanner_23030131","2024-08-23T07:06:38.000Z","moritz.mainka@usys.ethz.ch",-20,29.614703414056
+"03-0010_1","NeoScanner_23030131","2024-08-23T07:04:15.000Z","moritz.mainka@usys.ethz.ch",-10,37.3914437283604
