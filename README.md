@@ -7,7 +7,8 @@ Cost-efficient spectroscopy for soil analyses
 *Leonardo Ramirez-Lopez, Moritz Mainka, Laura Summerauer*
 
 # __The workshop__
-This is the main repository of the workshop II entitle "__Cost-efficient spectroscopy for soil analyses__".
+
+This is the main repository of the workshop II entitled "__Cost-efficient spectroscopy for soil analyses__".
 
 The main objective of our workshop was to immerse students in a practical experience where they could grasp the principles, benefits, and limitations of soil spectroscopy. To achieve this, we concentrated on the use of __handheld sensors__. The students developed their own predictive models using __open-source software__ and by utilising __existing soil NIR databases__. These models were then uploaded into a handheld system. Afterwards, they went into the field to carry out real-time estimations of the carbon content across soil profiles.
 
