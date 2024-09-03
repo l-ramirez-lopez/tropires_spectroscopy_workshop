@@ -11,9 +11,12 @@ This is the main repository of the workshop II entitle "__Cost-efficient spectro
 
 The main objective of our workshop was to immerse students in a practical experience where they could grasp the principles, benefits, and limitations of soil spectroscopy. To achieve this, we concentrated on the use of __handheld sensors__. The students developed their own predictive models using __open-source software__ and by utilising __existing soil NIR databases__. These models were then uploaded into a handheld system. Afterwards, they went into the field to carry out real-time estimations of the carbon content across soil profiles.
 
-<img src="inst/soil_sensing1.jpeg" width="250" />
-<img src="inst/soil_sensing2.jpeg" width="250" />
-<img src="inst/soil_sensing3.jpeg" width="250" />
+<p align="center">
+    <img src="inst/soil_sensing1.jpeg" width="250" />
+    <img src="inst/soil_sensing2.jpeg" width="250" />
+    <img src="inst/soil_sensing3.jpeg" width="250" />
+</p>
+
 
 # __Our learning objectives__
 
